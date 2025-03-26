@@ -1,19 +1,14 @@
 export const AVAILABLE_TAGS = [
-    "JavaScript",
-    "React",
-    "TypeScript",
-    "HTML",
-    "CSS",
-    "Python",
-    "Java",
-    "Go",
-    "C++",
-    "Tutorial",
-    "Snippet",
-    "Algorithm",
-    "Frontend",
-    "Backend",
-    "Database",
+    "Technology",
+    "Education",
+    "Business",
+    "Finance",
+    "Health",
+    "Travel",
+    "Science",
+    "Politics",
+    "History",
+    "Entertainment"
 ]
 
 export const documentTypes = {
@@ -28,4 +23,4 @@ export const privacyStatus = {
 
 export const DEFAULT_EXPIRY_DATE = new Date('2100-01-01');
 
-export const SITE_URL = 'http://localhost:5173';
+export const SITE_URL = 'https://textbin-pro.vercel.app';
