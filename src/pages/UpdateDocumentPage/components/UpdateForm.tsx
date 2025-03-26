@@ -16,6 +16,7 @@ import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import {DateCalendar} from '@mui/x-date-pickers/DateCalendar';
 import {addDays, formatDate} from "date-fns";
 import dayjs from "dayjs";
+import posthog from "posthog-js";
 
 interface UpdateFormProps {
     mode: string
@@ -77,6 +78,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
             });
 
             toast.success("Document updated successfully!");
+            posthog.capture('document_update', {documentId: oldDocument?._id});
         } catch (error) {
             toast.error("Failed to update document.");
         } finally {

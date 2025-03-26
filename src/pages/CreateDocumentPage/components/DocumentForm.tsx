@@ -16,6 +16,7 @@ import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import {DateCalendar} from '@mui/x-date-pickers/DateCalendar';
 import {addDays, formatDate} from "date-fns";
 import dayjs from "dayjs";
+import posthog from "posthog-js";
 
 interface DocumentFormProps {
     mode: string
@@ -111,6 +112,8 @@ const DocumentForm: React.FC<DocumentFormProps> = ({mode, content, language, set
             setShowPassword(false);
             setIsEncrypted(false);
             toast.success("Document created successfully!");
+
+            posthog.capture('document_create', {document});
         } catch (error) {
             toast.error("Failed to create document.");
         } finally {
