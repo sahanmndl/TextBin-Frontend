@@ -9,10 +9,10 @@ function App() {
         <>
             <Router>
                 <Routes>
-                    <Route path="*" element={<Navigate to="/" replace/>}/>
                     <Route path="/" element={<CreateDocumentPage/>}/>
                     <Route path="/read/:readCode" element={<ReadDocumentPage/>}/>
                     <Route path="/update/:updateCode" element={<UpdateDocumentPage/>}/>
+                    <Route path="*" element={<Navigate to="/" replace/>}/>
                 </Routes>
             </Router>
             <Toaster/>
