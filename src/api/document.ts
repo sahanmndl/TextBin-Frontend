@@ -23,6 +23,8 @@ export interface DocumentType {
     };
     isEncrypted: boolean;
     views: number;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 interface AddDocumentRequest {
@@ -60,6 +62,7 @@ interface UpdateDocumentRequest {
         isPasswordProtected: boolean;
         password?: string;
     };
+    updateCode: string;
 }
 
 interface GetDocumentsRequest {
@@ -69,6 +72,12 @@ interface GetDocumentsRequest {
     limit?: number;
     sortBy?: "createdAt" | "views";
     sortOrder?: "asc" | "desc";
+}
+
+interface DeleteDocumentRequest {
+    id: string;
+    readCode: string;
+    updateCode: string;
 }
 
 interface EncryptedDocument {
@@ -82,18 +91,30 @@ interface DocumentStatus {
     isEncrypted: boolean;
 }
 
+interface PaginatedDocumentsResponse {
+    data: DocumentType[];
+    pagination: {
+        totalCount: number;
+        totalPages: number;
+        currentPage: number;
+        pageSize: number;
+        hasNext: boolean;
+    };
+}
+
+
 export const addDocument = async (data: AddDocumentRequest) => {
-    const response = await documentAPI.post<ApiResponse<DocumentType>>("/", data);
+    const response = await documentAPI.post<ApiResponse<DocumentType>>("", data);
     return response.data.body;
 };
 
 export const addDocumentWithEncryption = async (data: AddDocumentRequest) => {
-    const response = await documentAPI.post<ApiResponse<EncryptedDocument>>("/", data);
+    const response = await documentAPI.post<ApiResponse<EncryptedDocument>>("", data);
     return response.data.body;
 };
 
 export const updateDocument = async (data: UpdateDocumentRequest) => {
-    const response = await documentAPI.put<ApiResponse<DocumentType>>("/", data);
+    const response = await documentAPI.put<ApiResponse<DocumentType>>("", data);
     return response.data.body;
 };
 
@@ -122,11 +143,11 @@ export const getDocumentByUpdateCode = async (code: string) => {
 };
 
 export const getDocuments = async (params: GetDocumentsRequest) => {
-    const response = await documentAPI.get<ApiResponse<DocumentType[]>>("/", {params});
+    const response = await documentAPI.get<ApiResponse<PaginatedDocumentsResponse>>("", {params});
     return response.data.body;
 };
 
-export const deleteDocument = async (id: string) => {
-    const response = await documentAPI.delete<ApiResponse<string>>(`/${id}`);
+export const deleteDocument = async (data: DeleteDocumentRequest) => {
+    const response = await documentAPI.post<ApiResponse<string>>("/delete", data);
     return response.data.body;
 };

@@ -24,3 +24,4 @@ export const privacyStatus = {
 export const DEFAULT_EXPIRY_DATE = new Date('2100-01-01');
 
 export const SITE_URL = 'https://textbin-pro.vercel.app';
+// export const SITE_URL = 'http://localhost:5173'

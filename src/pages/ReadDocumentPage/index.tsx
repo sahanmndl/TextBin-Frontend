@@ -56,7 +56,7 @@ const ReadDocumentPage = () => {
     return (
         <main className="min-h-screen flex flex-col">
             <Header/>
-            <div className="flex-1 px-8 py-4">
+            <div className="flex-1 px-4 sm:px-8 py-4">
                 {(isStatusLoading || loading) ? (
                     <CircularLoader/>
                 ) : isStatusError ? (
@@ -88,7 +88,6 @@ const ReadDocumentPage = () => {
                                 </CardContent>
                                 <CardFooter>
                                     <Button
-                                        style={{cursor: 'pointer'}}
                                         type="submit"
                                         className="w-full"
                                         onClick={fetchDocument}
@@ -101,18 +100,16 @@ const ReadDocumentPage = () => {
                         )}
 
                         {document && (
-                            <div className="flex flex-col gap-4" style={{paddingLeft: '16%', paddingRight: '16%'}}>
-                                <h2 className="text-2xl font-semibold">
-                                    {document.title}
-                                </h2>
+                            <div className="w-full max-w-6xl mx-auto flex flex-col gap-4">
+                                <h2 className="text-2xl font-semibold break-words">{document.title}</h2>
                                 <div className="flex flex-wrap gap-2">
                                     {document.tags?.map((tag: string, index: number) => (
                                         <span key={index} className="px-2 py-0.5 text-sm bg-gray-200 rounded">
-                                    {tag}
-                                </span>
+                                           {tag}
+                                        </span>
                                     ))}
                                 </div>
-                                <div className="flex items-center gap-4 text-gray-600 text-sm">
+                                <div className="flex flex-wrap items-center gap-4 text-gray-600 text-sm">
                                     <div className="flex items-center gap-1">
                                         <EyeIcon className="w-4 h-4"/>
                                         <span>{document.views} views</span>
@@ -121,8 +118,8 @@ const ReadDocumentPage = () => {
                                         <div className="flex items-center gap-1">
                                             <CalendarIcon className="w-4 h-4"/>
                                             <span>
-                                        Expires on {new Date(document.expiryStatus.expirationDate).toLocaleDateString()}
-                                    </span>
+                                                Expires on {new Date(document.expiryStatus.expirationDate).toLocaleDateString()}
+                                            </span>
                                         </div>
                                     )}
                                 </div>

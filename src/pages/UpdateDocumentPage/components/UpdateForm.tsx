@@ -33,6 +33,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
     const [isPublic, setIsPublic] = useState(oldDocument?.privacy === privacyStatus.PUBLIC);
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [passwordError, setPasswordError] = useState("");
     const [loading, setLoading] = useState(false);
 
     const handleIsExpiryToggle = (checked: boolean) => {
@@ -54,10 +55,26 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
         }
     }
 
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setPassword(val)
+
+        if (!isPublic && val.length < 8) {
+            setPasswordError("Password must be at least 8 characters long")
+        } else {
+            setPasswordError("")
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
 
+        if (!isPublic && password.trim().length < 8) {
+            toast.error("Password must be at least 8 characters long");
+            return;
+        }
+
+        setLoading(true);
         try {
             await updateDocument({
                 id: oldDocument?._id || "",
@@ -75,6 +92,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
                 passwordStatus: isPublic
                     ? {isPasswordProtected: false, password}
                     : {isPasswordProtected: password.trim() !== "", password},
+                updateCode: oldDocument?.updateCode || ''
             });
 
             toast.success("Document updated successfully!");
@@ -91,7 +109,11 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
 
         setLoading(true);
         try {
-            await deleteDocument(oldDocument._id);
+            await deleteDocument({
+                id: oldDocument?._id || "",
+                readCode: oldDocument?.readCode || "",
+                updateCode: oldDocument?.updateCode || "",
+            });
             toast.success("Document deleted successfully!");
             setTimeout(() => {
                 window.location.reload();
@@ -186,27 +208,32 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
                 {!isPublic && (
                     <div className="space-y-2">
                         <Label htmlFor="password">Password</Label>
-                        <div className="relative">
-                            <Input
-                                id="password"
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Set a password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required={!isPublic}
-                                className="pr-10"
-                            />
-                            <Button
-                                style={{cursor: 'pointer'}}
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-0 top-0 h-full px-3"
-                                onClick={() => setShowPassword(!showPassword)}
-                            >
-                                {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
-                                <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
-                            </Button>
+                        <div className="space-y-1">
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Set a password"
+                                    value={password}
+                                    onChange={handlePasswordChange}
+                                    required={!isPublic}
+                                    className={`pr-10 ${passwordError ? "border-red-500" : ""}`}
+                                />
+                                <Button
+                                    style={{cursor: 'pointer'}}
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-0 top-0 h-full px-3"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                                    <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
+                                </Button>
+                            </div>
+                            {passwordError && (
+                                <p className="text-sm text-red-500">{passwordError}</p>
+                            )}
                         </div>
                     </div>
                 )}
@@ -217,7 +244,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
                     type="submit"
                     className="w-full"
                     disabled={loading || content.trim().length === 0 || title.trim().length === 0
-                        || (!isPublic && password.trim().length === 0)}
+                        || (!isPublic && password.trim().length < 8)}
                     onClick={handleSubmit}
                 >
                     {loading ? <CircularProgress size={24} color="inherit"/> : "Update Document"}

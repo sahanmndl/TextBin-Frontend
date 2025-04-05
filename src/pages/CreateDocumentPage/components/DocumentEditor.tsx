@@ -37,8 +37,8 @@ const DocumentEditor = () => {
     }, [count]);
 
     return (
-        <div className="grid grid-cols-5 gap-6">
-            <div className="col-span-3 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3 space-y-4">
                 <Tabs defaultValue="text" className="w-full" onValueChange={handleTabChange}>
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="text">TEXT</TabsTrigger>
@@ -74,7 +74,7 @@ const DocumentEditor = () => {
                     </TabsContent>
                 </Tabs>
             </div>
-            <div className="col-span-2">
+            <div className="mt-20 lg:mt-0 lg:col-span-2">
                 <DocumentForm mode={mode} content={content} language={language} setCount={setCount}/>
             </div>
         </div>

@@ -33,6 +33,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({mode, content, language, set
     const [isPublic, setIsPublic] = useState(true);
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [passwordError, setPasswordError] = useState("");
     const [isEncrypted, setIsEncrypted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [document, setDocument] = useState<DocumentType | null>(null);
@@ -58,10 +59,26 @@ const DocumentForm: React.FC<DocumentFormProps> = ({mode, content, language, set
         }
     }
 
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setPassword(val)
+
+        if (!isPublic && val.length < 8) {
+            setPasswordError("Password must be at least 8 characters long")
+        } else {
+            setPasswordError("")
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
 
+        if (!isPublic && password.trim().length > 0 && password.trim().length < 8) {
+            toast.error("Password must be at least 8 characters long");
+            return;
+        }
+
+        setLoading(true);
         try {
             let document: DocumentType;
             if (isEncrypted) {
@@ -209,27 +226,32 @@ const DocumentForm: React.FC<DocumentFormProps> = ({mode, content, language, set
                 {!isPublic && (
                     <div className="space-y-2">
                         <Label htmlFor="password">Password</Label>
-                        <div className="relative">
-                            <Input
-                                id="password"
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Set a password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required={!isPublic}
-                                className="pr-10"
-                            />
-                            <Button
-                                style={{cursor: 'pointer'}}
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-0 top-0 h-full px-3"
-                                onClick={() => setShowPassword(!showPassword)}
-                            >
-                                {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
-                                <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
-                            </Button>
+                        <div className="space-y-1">
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Set a password"
+                                    value={password}
+                                    onChange={handlePasswordChange}
+                                    required={!isPublic}
+                                    className={`pr-10 ${passwordError ? "border-red-500" : ""}`}
+                                />
+                                <Button
+                                    style={{cursor: 'pointer'}}
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-0 top-0 h-full px-3"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                                    <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
+                                </Button>
+                            </div>
+                            {passwordError && (
+                                <p className="text-sm text-red-500">{passwordError}</p>
+                            )}
                         </div>
                     </div>
                 )}
@@ -247,7 +269,9 @@ const DocumentForm: React.FC<DocumentFormProps> = ({mode, content, language, set
                     type="submit"
                     className="w-full"
                     disabled={loading || content.trim().length === 0 || title.trim().length === 0
-                        || (!isPublic && !isEncrypted && password.trim().length === 0)}
+                        || (!isPublic && !isEncrypted && password.trim().length < 8)
+                        || (!isPublic && isEncrypted && password.trim().length > 0 && password.trim().length < 8)
+                    }
                     onClick={handleSubmit}
                 >
                     {loading ? <CircularProgress size={24} color="inherit"/> : "Create New Doc"}
