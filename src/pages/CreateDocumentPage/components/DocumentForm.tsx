@@ -274,7 +274,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({mode, content, language, set
                     }
                     onClick={handleSubmit}
                 >
-                    {loading ? <CircularProgress size={24} color="inherit"/> : "Create New Doc"}
+                    {loading ? <CircularProgress size={24} color="inherit"/> : "Create Document"}
                 </Button>
 
                 {document !== null && (

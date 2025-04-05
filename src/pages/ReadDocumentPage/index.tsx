@@ -88,6 +88,7 @@ const ReadDocumentPage = () => {
                                 </CardContent>
                                 <CardFooter>
                                     <Button
+                                        style={{cursor: "pointer"}}
                                         type="submit"
                                         className="w-full"
                                         onClick={fetchDocument}
