@@ -8,6 +8,14 @@ const Header = () => {
                     <h1 className="text-xl font-semibold">TextBin</h1>
                 </a>
                 <div className="flex items-center gap-8">
+                    <a
+                        className="text-sm font-medium hover:underline"
+                        href="https://textbin-pro.vercel.app/read/mN2LSvco"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        About
+                    </a>
                     <a href="/public" className="text-sm font-medium hover:underline">
                         Public Documents
                     </a>
