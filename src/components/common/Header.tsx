@@ -20,7 +20,10 @@ const Header = () => {
                         Terms
                     </a>
                     <a href="/public" className="text-sm font-medium hover:underline">
-                        Public <span className="hidden sm:inline">Documents</span>
+                        Public
+                    </a>
+                    <a href="/saved" className="text-sm font-medium hover:underline">
+                        Saved
                     </a>
                     <a
                         href="/"

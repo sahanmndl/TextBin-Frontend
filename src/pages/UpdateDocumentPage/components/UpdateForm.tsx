@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card"
-import {Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose} from "@/components/ui/dialog"
+import {Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog"
 import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {Button} from "@/components/ui/button"
@@ -8,7 +8,7 @@ import {Switch} from "@/components/ui/switch"
 import {Eye, EyeOff} from "lucide-react"
 import {AVAILABLE_TAGS, DEFAULT_EXPIRY_DATE, documentTypes, privacyStatus, SITE_URL} from "@/constants/constants.ts";
 import MultiSelect from "@/components/common/MultiSelect.tsx";
-import {deleteDocument, DocumentType, updateDocument} from "@/api/document.ts";
+import {deleteDocument, DocumentType, SavedDocumentType, updateDocument} from "@/api/document.ts";
 import {toast} from "sonner";
 import {CircularProgress} from "@mui/material";
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
@@ -95,6 +95,8 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
                 updateCode: oldDocument?.updateCode || ''
             });
 
+            handleSaveToLocal();
+
             toast.success("Document updated successfully!");
             posthog.capture('document_update', {documentId: oldDocument?._id});
         } catch (error) {
@@ -114,6 +116,11 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
                 readCode: oldDocument?.readCode || "",
                 updateCode: oldDocument?.updateCode || "",
             });
+
+            const savedDocs = JSON.parse(localStorage.getItem("savedDocs") || "[]");
+            const updatedDocs = savedDocs.filter((doc: SavedDocumentType) => doc._id?.toString() !== oldDocument._id?.toString());
+            localStorage.setItem("savedDocs", JSON.stringify(updatedDocs));
+
             toast.success("Document deleted successfully!");
             setTimeout(() => {
                 window.location.reload();
@@ -133,6 +140,24 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
     const handleUpdateLinkCopy = (updateCode: string) => {
         navigator.clipboard.writeText(`${SITE_URL}/update/${updateCode}`);
         toast.success("Update URL copied to clipboard!");
+    };
+
+    const handleSaveToLocal = () => {
+        const savedDocs = JSON.parse(localStorage.getItem("savedDocs") || "[]");
+        const index = savedDocs.findIndex((doc: SavedDocumentType) => doc._id?.toString() === oldDocument?._id.toString());
+
+        if (index !== -1) {
+            savedDocs[index] = {
+                _id: oldDocument?._id?.toString(),
+                readLink: `${SITE_URL}/read/${oldDocument?.readCode}`,
+                updateLink: `${SITE_URL}/update/${oldDocument?.updateCode}`,
+                decryptionKey: undefined,
+                createdAt: oldDocument?.createdAt,
+                title: title.trim(),
+            };
+
+            localStorage.setItem("savedDocs", JSON.stringify(savedDocs));
+        }
     };
 
     return (
@@ -318,7 +343,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({mode, content, language, oldDocu
                         </DialogHeader>
                         <p>Are you sure you want to delete this document? This action cannot be undone.</p>
                         <DialogClose asChild>
-                            <Button onClick={handleDelete} color="error" disabled={loading}>
+                            <Button style={{cursor: 'pointer'}} onClick={handleDelete} color="error" disabled={loading}>
                                 {loading ? <CircularProgress size={24} color="inherit"/> : "Delete"}
                             </Button>
                         </DialogClose>

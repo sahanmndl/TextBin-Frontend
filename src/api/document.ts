@@ -27,6 +27,12 @@ export interface DocumentType {
     updatedAt: Date;
 }
 
+export interface SavedDocumentType extends DocumentType {
+    readLink: string;
+    updateLink?: string | undefined;
+    decryptionKey?: string | undefined;
+}
+
 interface AddDocumentRequest {
     title: string;
     content: string;
@@ -78,6 +84,10 @@ interface DeleteDocumentRequest {
     id: string;
     readCode: string;
     updateCode: string;
+}
+
+export interface DocumentResponseType extends DocumentType {
+    isReported: boolean;
 }
 
 interface EncryptedDocument {
@@ -133,7 +143,7 @@ export const getDocumentByReadCode = async (code: string, password?: string, key
     if (password) params.password = password;
     if (key) params.key = key;
 
-    const response = await documentAPI.get<ApiResponse<DocumentType>>(`/read/${code}`, {params});
+    const response = await documentAPI.get<ApiResponse<DocumentResponseType>>(`/read/${code}`, {params});
     return response.data.body;
 };
 

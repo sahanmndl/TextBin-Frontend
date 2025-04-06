@@ -38,6 +38,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({mode, content, language, set
     const [loading, setLoading] = useState(false);
     const [document, setDocument] = useState<DocumentType | null>(null);
     const [decryptionKey, setDecryptionKey] = useState("");
+    const [isSavedLocally, setIsSavedLocally] = useState(false);
 
     const handleIsExpiryToggle = (checked: boolean) => {
         if (checked) {
@@ -128,6 +129,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({mode, content, language, set
             setPassword("");
             setShowPassword(false);
             setIsEncrypted(false);
+            setIsSavedLocally(false);
             toast.success("Document created successfully!");
 
             posthog.capture('document_create', {document});
@@ -151,6 +153,29 @@ const DocumentForm: React.FC<DocumentFormProps> = ({mode, content, language, set
     const handleDecryptionKeyCopy = () => {
         navigator.clipboard.writeText(decryptionKey);
         toast.success("Decryption Key copied to clipboard!");
+    };
+
+    const handleSaveToLocal = () => {
+        const savedDocs = JSON.parse(localStorage.getItem("savedDocs") || "[]");
+
+        const newDoc = {
+            _id: document?._id?.toString(),
+            readLink: `${SITE_URL}/read/${document?.readCode}`,
+            updateLink: document?.isEncrypted ? undefined : `${SITE_URL}/update/${document?.updateCode}`,
+            decryptionKey: document?.isEncrypted ? decryptionKey : undefined,
+            createdAt: document?.createdAt,
+            title: document?.title,
+        };
+
+        const alreadyExists = savedDocs.some((doc: DocumentType) => doc._id.toString() === newDoc._id?.toString());
+        if (alreadyExists) {
+            toast.info("Document already saved locally!");
+            return;
+        }
+
+        localStorage.setItem("savedDocs", JSON.stringify([...savedDocs, newDoc]));
+        setIsSavedLocally(true);
+        toast.success("Document links saved!");
     };
 
     return (
@@ -354,6 +379,17 @@ const DocumentForm: React.FC<DocumentFormProps> = ({mode, content, language, set
                                 edit this document later.
                             </p>
                         )}
+
+                        <Button
+                            style={{cursor: 'pointer'}}
+                            variant={isSavedLocally ? "ghost" : "outline"}
+                            size="sm"
+                            onClick={handleSaveToLocal}
+                            className="w-full"
+                            disabled={isSavedLocally}
+                        >
+                            {isSavedLocally ? "Saved Locally" : "Save Document Links Locally"}
+                        </Button>
                     </div>
                 )}
             </CardFooter>

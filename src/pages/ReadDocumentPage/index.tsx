@@ -1,7 +1,7 @@
 import Header from "@/components/common/Header.tsx";
 import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {DocumentType, getDocumentByReadCode, getDocumentPrivacyStatus} from "@/api/document.ts";
+import {DocumentResponseType, getDocumentByReadCode, getDocumentPrivacyStatus} from "@/api/document.ts";
 import {useQuery} from "@tanstack/react-query";
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card"
 import {Input} from "@/components/ui/input.tsx";
@@ -11,18 +11,30 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import './styles.css';
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
-import {CalendarIcon, EyeIcon} from "lucide-react";
+import {CalendarIcon, EyeIcon, FlagIcon} from "lucide-react";
 import {documentTypes, privacyStatus} from "@/constants/constants.ts";
 import CircularLoader from "@/components/common/CircularLoader.tsx";
 import {AxiosError} from "axios";
 import {Alert} from "@mui/material";
+import {createReport} from "@/api/report.ts";
+import {
+    AlertDialog, AlertDialogAction, AlertDialogCancel,
+    AlertDialogContent, AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger
+} from "@/components/ui/alert-dialog.tsx";
 
 const ReadDocumentPage = () => {
     const {readCode} = useParams();
     const [password, setPassword] = useState("");
     const [decryptionKey, setDecryptionKey] = useState("");
-    const [document, setDocument] = useState<DocumentType | null>(null);
+    const [document, setDocument] = useState<DocumentResponseType | null>(null);
     const [loading, setLoading] = useState(false);
+    const [reportDialogOpen, setReportDialogOpen] = useState(false);
+    const [reportReason, setReportReason] = useState("");
+    const [reportLoading, setReportLoading] = useState(false);
+    const [hasReported, setHasReported] = useState(false);
 
     const {data: status, isLoading: isStatusLoading, isError: isStatusError, error: statusError} = useQuery({
         queryKey: ['status', readCode],
@@ -39,6 +51,22 @@ const ReadDocumentPage = () => {
             toast.error("Failed to fetch document. Check credentials.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleReport = async () => {
+        if (!document) return;
+
+        setReportLoading(true);
+        try {
+            await createReport({readCode: document.readCode, reason: reportReason.trim()});
+            toast.success("Document reported successfully.");
+            setHasReported(true);
+            setReportDialogOpen(false);
+        } catch (error) {
+            toast.error("Failed to report document.");
+        } finally {
+            setReportLoading(false);
         }
     };
 
@@ -110,19 +138,68 @@ const ReadDocumentPage = () => {
                                         </span>
                                     ))}
                                 </div>
-                                <div className="flex flex-wrap items-center gap-4 text-gray-600 text-sm">
-                                    <div className="flex items-center gap-1">
-                                        <EyeIcon className="w-4 h-4"/>
-                                        <span>{document.views} views</span>
-                                    </div>
-                                    {document.expiryStatus.isExpiring && (
+                                <div className="flex flex-row w-full items-center justify-between">
+                                    <div className="flex flex-wrap items-center gap-4 text-gray-600 text-sm">
                                         <div className="flex items-center gap-1">
-                                            <CalendarIcon className="w-4 h-4"/>
-                                            <span>
+                                            <EyeIcon className="w-4 h-4"/>
+                                            <span>{document.views} views</span>
+                                        </div>
+                                        {document.expiryStatus.isExpiring && (
+                                            <div className="flex items-center gap-1">
+                                                <CalendarIcon className="w-4 h-4"/>
+                                                <span>
                                                 Expires on {new Date(document.expiryStatus.expirationDate).toLocaleDateString()}
                                             </span>
-                                        </div>
-                                    )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <AlertDialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+                                            <AlertDialogTrigger asChild>
+                                                <Button
+                                                    style={{cursor: "pointer"}}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    disabled={document.isReported || hasReported}
+                                                    className="flex items-center gap-1"
+                                                >
+                                                    <FlagIcon className="w-4 h-4"/>
+                                                    {document.isReported || hasReported ? "Reported" : "Report"}
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>
+                                                        Are you sure you want to report this document?
+                                                    </AlertDialogTitle>
+                                                    <p className="text-sm text-muted-foreground mt-1">
+                                                        Optional: Add a reason below
+                                                    </p>
+                                                    <Input
+                                                        placeholder="Reason (optional)"
+                                                        value={reportReason}
+                                                        onChange={(e) => setReportReason(e.target.value)}
+                                                        className="mt-2"
+                                                    />
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel
+                                                        disabled={reportLoading}
+                                                        style={{cursor: "pointer"}}
+                                                    >
+                                                        Cancel
+                                                    </AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        style={{cursor: "pointer"}}
+                                                        onClick={handleReport}
+                                                        disabled={reportLoading}
+                                                    >
+                                                        {reportLoading ? "Reporting..." : "Yes, Report"}
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
                                 </div>
                                 {document.type === documentTypes.TEXT ? (
                                     <div className="read-doc-container">
