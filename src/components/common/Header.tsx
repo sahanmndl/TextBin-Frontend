@@ -10,7 +10,7 @@ const Header = () => {
                 <div className="flex items-center gap-2 sm:gap-8">
                     <a
                         className="text-sm font-medium hover:underline"
-                        href="https://textbin-pro.vercel.app/read/mN2LSvco"
+                        href="https://textbin-pro.vercel.app/read/ZE9fLh56"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
